@@ -1,0 +1,39 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "healthportal-swe463",
+          "appId": "1:792855206662:android:5251c0d51ecc8bd1b3dc87",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "healthportal-swe463",
+          "configurations": {
+            "android": "1:792855206662:android:5251c0d51ecc8bd1b3dc87",
+            "ios": "1:792855206662:ios:a51747725218ae61b3dc87",
+            "macos": "1:792855206662:ios:a51747725218ae61b3dc87",
+            "web": "1:792855206662:web:c244efa33a85fe3cb3dc87",
+            "windows": "1:792855206662:web:b79ef284b165caa6b3dc87"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
