@@ -29,7 +29,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
     'سبت',
   ];
 
-  // ========== New State for Medications ==========
+  // New State for Medications
   final MedicationsService _medicationsService = MedicationsService();
 
   bool _isLoadingMedications = true;
@@ -347,7 +347,6 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
           setState(() {
             _selectedDate = date;
           });
-          // هنا ممكن مستقبلاً تربط الأدوية بتاريخ معين
         }
       },
       child: Container(
@@ -398,7 +397,6 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
       );
     }
 
-    // نعتبر أن جرعات اليوم المتبقية = الأدوية اللي التذكير لها مفعّل
     final todayMeds = _allMedications.where((m) => m.reminderEnabled).toList();
 
     if (todayMeds.isEmpty) {

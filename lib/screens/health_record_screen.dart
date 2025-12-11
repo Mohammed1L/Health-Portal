@@ -61,7 +61,6 @@ class _HealthRecordScreenState extends State<HealthRecordScreen> {
     });
 
     try {
-      // نستخدم userId = "1" لأن db.json عندك فيه id = "1"
       final record = await _healthRecordService.fetchHealthRecord('1');
 
       if (!mounted) return;

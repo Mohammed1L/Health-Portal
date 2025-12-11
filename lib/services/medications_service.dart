@@ -12,7 +12,6 @@ class MedicationsService {
   MedicationsService({String? baseUrl})
       : baseUrl = baseUrl ?? ApiConfig.baseUrl;
 
-  /// جلب جميع الأدوية من الـ backend
   Future<List<Medication>> fetchMedications() async {
     final uri = Uri.parse('$baseUrl/medications');
     final response = await http.get(uri);
@@ -28,7 +27,6 @@ class MedicationsService {
         .toList();
   }
 
-  /// إنشاء دواء جديد
   Future<Medication> createMedication({
     required String name,
     required String brand,
@@ -62,7 +60,6 @@ class MedicationsService {
     return Medication.fromJson(json);
   }
 
-  /// تحديث دواء موجود (مثلاً حالة التذكير)
   Future<Medication> updateMedication(Medication medication) async {
     final uri = Uri.parse('$baseUrl/medications/${medication.id}');
 

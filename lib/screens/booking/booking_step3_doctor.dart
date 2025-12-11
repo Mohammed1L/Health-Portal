@@ -30,7 +30,7 @@ class _BookingStep3DoctorState extends State<BookingStep3Doctor> {
 
   // NEW: service + state
   final DoctorsService _doctorsService =
-  DoctorsService(baseUrl: ApiConfig.baseUrl); // عدّلها لو احتجت
+  DoctorsService(baseUrl: ApiConfig.baseUrl);
 
   List<Map<String, dynamic>> _allDoctors = [];
   bool _isLoading = false;

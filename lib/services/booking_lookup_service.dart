@@ -7,7 +7,6 @@ class BookingLookupService {
 
   BookingLookupService({required this.baseUrl});
 
-  /// جلب العيادات
   Future<List<Map<String, dynamic>>> fetchClinics() async {
     final uri = Uri.parse('$baseUrl/clinics');
     final response = await http.get(uri);
@@ -20,7 +19,6 @@ class BookingLookupService {
     return jsonList.cast<Map<String, dynamic>>();
   }
 
-  /// جلب المنشآت حسب العيادة
   Future<List<Map<String, dynamic>>> fetchFacilities({
     required String clinicId,
   }) async {
@@ -35,7 +33,6 @@ class BookingLookupService {
     return jsonList.cast<Map<String, dynamic>>();
   }
 
-  /// جلب الأطباء حسب العيادة والمنشأة
   Future<List<Map<String, dynamic>>> fetchDoctors({
     required String clinicId,
     required String facilityId,

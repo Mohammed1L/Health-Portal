@@ -4,9 +4,9 @@ class HealthRecord {
   final String id;
   final double heightCm;
   final double weightKg;
-  final String bloodPressure; // مثال: "127/71"
-  final int heartRate;        // مثال: 72
-  final double bloodSugar;    // مثال: 120
+  final String bloodPressure;
+  final int heartRate;
+  final double bloodSugar;
   final double bmi;
   final DateTime updatedAt;
 

@@ -31,9 +31,9 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
   // Store booking data as user progresses
   final Map<String, dynamic> _bookingData = {};
 
-  // NEW: Service + حالة الإرسال
+  // NEW: Service
   final AppointmentsService _appointmentsService =
-  AppointmentsService(baseUrl: ApiConfig.baseUrl); // عدّلها حسب السيرفر
+  AppointmentsService(baseUrl: ApiConfig.baseUrl);
   bool _isSubmitting = false;
 
   void _goToNextStep() {
@@ -92,7 +92,6 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
     });
   }
 
-  // NEW: تنفيذ الحجز فعليًا عبر الـ API
   Future<void> _submitBooking() async {
     if (_isSubmitting) return;
 
@@ -114,7 +113,6 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
         ),
       );
 
-      // نرجع true عشان صفحة المواعيد تعرف إنه تم حجز موعد جديد وتعمل refresh
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;

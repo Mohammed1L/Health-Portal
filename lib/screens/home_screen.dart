@@ -18,8 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // service
   final AppointmentsService _appointmentsService =
   AppointmentsService(baseUrl: ApiConfig.baseUrl);
-  // لو تشغل على Emulator أندرويد:
-  // AppointmentsService(baseUrl: 'http://10.0.2.2:3000');
+
 
   Appointment? _nextAppointment;
   bool _isLoadingNext = true;
@@ -127,7 +126,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNextAppointmentCard(BuildContext context) {
-    // حالة التحميل
     if (_isLoadingNext) {
       return AppCard(
         isOutlined: true,
@@ -152,7 +150,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // حالة الخطأ
     if (_errorMessage != null) {
       return AppCard(
         isOutlined: true,
@@ -173,7 +170,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // لا يوجد موعد قادم
     if (_nextAppointment == null) {
       return AppCard(
         isOutlined: true,
@@ -291,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _formatDateTime(DateTime dt) {
-    // تنسيق بسيط: 2025-12-15 10:00
+    // 2025-12-15 10:00
     final y = dt.year.toString().padLeft(4, '0');
     final m = dt.month.toString().padLeft(2, '0');
     final d = dt.day.toString().padLeft(2, '0');

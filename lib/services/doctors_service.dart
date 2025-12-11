@@ -7,7 +7,6 @@ class DoctorsService {
 
   DoctorsService({required this.baseUrl});
 
-  /// جلب الأطباء مع إمكانية التصفية بالعيادة والمنشأة
   Future<List<Map<String, dynamic>>> fetchDoctors({
     String? clinicId,
     String? facilityId,

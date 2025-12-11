@@ -9,10 +9,8 @@ class HealthRecordService {
 
   HealthRecordService({required this.baseUrl});
 
-  /// جلب السجل الصحي لمستخدم معيّن
   Future<HealthRecord> fetchHealthRecord(String userId) async {
-    // مع json-server و db.json اللي عندك:
-    // GET /health-records/1  → يرجع العنصر بـ id = 1
+
     final uri = Uri.parse('$baseUrl/health-records/$userId');
 
     final response = await http.get(uri);
@@ -29,7 +27,6 @@ class HealthRecordService {
     return HealthRecord.fromJson(json);
   }
 
-  /// تحديث السجل الصحي
   Future<HealthRecord> updateHealthRecord(HealthRecord record) async {
     // PUT /health-records/:id
     final uri = Uri.parse('$baseUrl/health-records/${record.id}');

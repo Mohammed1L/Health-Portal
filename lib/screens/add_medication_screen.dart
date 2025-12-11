@@ -30,7 +30,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
   }
 
   String _formatTime(TimeOfDay time) {
-    // نخليها بشكل بسيط مثل 09:00 ص
     final hour = time.hourOfPeriod.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
     final period = time.period == DayPeriod.am ? 'ص' : 'م';
@@ -72,7 +71,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         reminderEnabled: _reminderEnabled,
       );
 
-      // نرجع true عشان MedicationsScreen تعيد تحميل القائمة
       Navigator.of(context).pop(true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -31,13 +31,11 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   DateTime _currentMonth = DateTime.now();
   String? _selectedTime;
 
-  // ربط API للأوقات
   final String _baseUrl = ApiConfig.baseUrl; // TODO: عدّلها حسب السيرفر
   List<String> _availableTimes = [];
   bool _isLoadingTimes = false;
   String? _timesError;
 
-  // الأيام التي يوجد لها مواعيد متاحة (مستخرجة من الـ API)
   Set<DateTime> _availableDates = {};
 
   // Arabic day names
@@ -54,11 +52,10 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   @override
   void initState() {
     super.initState();
-    // لو كل شيء مختار (عيادة + منشأة + طبيب) نقدر نحمّل البيانات
     if (widget.selectedClinicId != null &&
         widget.selectedFacilityId != null &&
         widget.selectedDoctorId != null) {
-      _loadAvailableDates(); // نجيب الأيام المتاحة، والأوقات لأول يوم متاح
+      _loadAvailableDates();
     }
   }
 
@@ -115,11 +112,9 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
         setState(() {
           if (_isHijri != isHijriValue) {
             if (isHijriValue) {
-              // الانتقال لعرض هجري
               final hijriDate = HijriDate.fromGregorian(_currentMonth);
               _currentMonth = hijriDate.toGregorian();
             } else {
-              // الرجوع لميلادي (نفس القيمة الحالية كـ Gregorian)
             }
             _isHijri = isHijriValue;
           }
@@ -407,7 +402,7 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
         bool isEnabled = true,
       }) {
     final bool canTap =
-        isCurrentMonth && date != null && isEnabled; // اليوم المسموح الضغط عليه
+        isCurrentMonth && date != null && isEnabled;
     final DateTime? selectedDate = canTap ? date : null;
 
     return GestureDetector(
@@ -416,7 +411,7 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
 
         setState(() {
           _selectedDate = selectedDate;
-          _selectedTime = null; // reset الوقت عند تغيير التاريخ
+          _selectedTime = null;
         });
         _loadAvailableTimes(selectedDate);
       },
@@ -436,7 +431,7 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               color: !isEnabled
-                  ? Colors.grey[300] // الأيام المعطّلة (ما فيها مواعيد)
+                  ? Colors.grey[300]
                   : isSelected
                   ? Colors.white
                   : isCurrentMonth
@@ -648,7 +643,6 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   }
 
   Future<void> _loadAvailableTimes(DateTime date) async {
-    // إذا ما فيه بيانات كافية لاختيار الطبيب/المنشأة/العيادة
     if (widget.selectedClinicId == null ||
         widget.selectedFacilityId == null ||
         widget.selectedDoctorId == null) {
@@ -667,7 +661,6 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
     });
 
     try {
-      // نجيب كل الـ time-slots ثم نفلترها في Flutter
       final uri = Uri.parse('$_baseUrl/time-slots');
       final response = await http.get(uri);
 
@@ -686,7 +679,6 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
       for (final item in jsonList) {
         if (item is! Map<String, dynamic>) continue;
 
-        // فلترة العيادة والمنشأة والطبيب
         if (item['clinicId']?.toString() != widget.selectedClinicId) continue;
         if (item['facilityId']?.toString() != widget.selectedFacilityId) continue;
         if (item['doctorId']?.toString() != widget.selectedDoctorId) continue;
@@ -700,7 +692,6 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
         final normalizedSlotDate =
         DateTime(dt.year, dt.month, dt.day);
 
-        // لازم نفس اليوم
         if (!_isSameDay(normalizedSlotDate, normalizedSelected)) continue;
 
         final timeStr = item['time']?.toString();
@@ -727,7 +718,6 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   }
 
   Future<void> _loadAvailableDates() async {
-    // إذا ما فيه بيانات كافية لاختيار الطبيب/المنشأة/العيادة
     if (widget.selectedClinicId == null ||
         widget.selectedFacilityId == null ||
         widget.selectedDoctorId == null) {
@@ -750,7 +740,6 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
       for (final item in jsonList) {
         if (item is! Map<String, dynamic>) continue;
 
-        // فلترة العيادة والمنشأة والطبيب
         if (item['clinicId']?.toString() != widget.selectedClinicId) continue;
         if (item['facilityId']?.toString() != widget.selectedFacilityId) continue;
         if (item['doctorId']?.toString() != widget.selectedDoctorId) continue;
@@ -767,7 +756,6 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
       setState(() {
         _availableDates = datesSet;
 
-        // لو فيه أيام متاحة، نضبط التاريخ المختار على أقرب يوم متاح
         if (_availableDates.isNotEmpty) {
           final today = DateTime(
             _selectedDate.year,
@@ -779,10 +767,8 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
             _selectedDate = _availableDates.first;
           }
 
-          // نحمّل الأوقات لأول يوم متاح
           _loadAvailableTimes(_selectedDate);
         } else {
-          // ما فيه أي أيام متاحة، نفضّي الأوقات
           _availableTimes = [];
         }
       });

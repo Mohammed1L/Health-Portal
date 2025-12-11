@@ -2,11 +2,11 @@
 
 class Medication {
   final String id;
-  final String name;          // اسم الدواء
-  final String brand;         // الشركة / الماركة
-  final String dosage;        // الجرعة (مثلاً: قرص مرتين يوميًا)
-  final String timeOfDay;     // وقت الجرعة كنص (مثلاً: "09:00 ص")
-  final bool reminderEnabled; // هل التذكير مفعّل
+  final String name;
+  final String brand;
+  final String dosage;
+  final String timeOfDay;
+  final bool reminderEnabled;
 
   Medication({
     required this.id,

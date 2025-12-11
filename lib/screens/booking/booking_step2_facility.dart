@@ -29,7 +29,7 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
 
   // NEW: service + state
   final FacilitiesService _facilitiesService =
-  FacilitiesService(baseUrl: ApiConfig.baseUrl); // عدّلها إذا احتجت
+  FacilitiesService(baseUrl: ApiConfig.baseUrl);
 
   List<Map<String, dynamic>> _allFacilities = [];
   bool _isLoading = false;
@@ -123,7 +123,6 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
   }
 
   Widget _buildFacilityList() {
-    // NEW: حالات التحميل والخطأ
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -300,7 +299,6 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
     );
   }
 
-  // فلترة المنشآت حسب البحث
   List<Map<String, dynamic>> _getFilteredFacilities() {
     if (_searchQuery.isEmpty) {
       return _allFacilities;

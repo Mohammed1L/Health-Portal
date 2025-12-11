@@ -5,7 +5,6 @@ import '../core/responsive.dart';
 import '../widgets/app_bar/theme_toggle_button.dart';
 import 'booking/booking_flow_screen.dart';
 
-// NEW:
 import '../models/appointment.dart';
 import '../services/appointments_service.dart';
 import '../../core/constants/api_config.dart';
@@ -22,10 +21,8 @@ class AppointmentsScreen extends StatefulWidget {
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   AppointmentTab _selectedTab = AppointmentTab.upcoming;
 
-  // NEW: Service + state
   final AppointmentsService _appointmentsService =
-  AppointmentsService(baseUrl: ApiConfig.baseUrl); // عدّلها حسب السيرفر
-  //final AppointmentsService _appointmentsService = AppointmentsService();
+  AppointmentsService(baseUrl: ApiConfig.baseUrl);
 
   List<Appointment> _appointments = [];
   bool _isLoading = false;
@@ -46,7 +43,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              // Header with title and tabs
               Padding(
                 padding: Responsive.getResponsivePadding(
                   context,
@@ -81,7 +77,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                   ],
                 ),
               ),
-              // Content area
               Expanded(
                 child: SingleChildScrollView(
                   padding: Responsive.getResponsivePadding(
@@ -139,7 +134,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         setState(() {
           _selectedTab = tab;
         });
-        // NEW: إعادة تحميل المواعيد بناءً على التاب
         _loadAppointments();
       },
       child: Container(
@@ -162,7 +156,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   Widget _buildAppointmentList() {
-    // NEW: حالات التحميل والخطأ
     if (_isLoading) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 40),
@@ -188,7 +181,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       );
     }
 
-    // NEW: استخدام البيانات القادمة من السيرفر
     final appointments = _getAppointments();
 
     if (appointments.isEmpty) {
@@ -314,7 +306,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           ),
         );
 
-        // NEW: لو تم الحجز بنجاح، رجّع true من صفحة الحجز → نعمل refresh
         if (result == true) {
           _loadAppointments();
         }
@@ -322,7 +313,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     );
   }
 
-  // NEW: تحويل List<Appointment> إلى List<Map<String, String>> للـ UI
   List<Map<String, String>> _getAppointments() {
     return _appointments.map((appointment) {
       return {
@@ -344,7 +334,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
   String _twoDigits(int n) => n.toString().padLeft(2, '0');
 
-  // NEW: تحميل المواعيد من الـ API
   Future<void> _loadAppointments() async {
     setState(() {
       _isLoading = true;

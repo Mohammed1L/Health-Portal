@@ -5,19 +5,17 @@ import 'package:http/http.dart' as http;
 import '../models/appointment.dart';
 
 class AppointmentsService {
-  /// عدّل الـ baseUrl حسب السيرفر عندكم
-  /// مثال لو عندك json-server شغّال محلي على 3000:
-  ///  http://10.0.2.2:3000  (للـ Emulator)
+
   final String baseUrl;
 
   AppointmentsService({required this.baseUrl});
 
-  /// جلب المواعيد (قادمة أو سابقة)
+
   Future<List<Appointment>> fetchAppointments({
     required bool upcoming,
   }) async {
-    // هنا نفترض أن السيرفر عنده endpoint مثل:
-    // GET /appointments?status=upcoming أو previous
+
+    // GET /appointments?status=upcoming or previous
     final uri = Uri.parse(
       '$baseUrl/appointments?status=${upcoming ? 'upcoming' : 'previous'}',
     );
@@ -34,18 +32,11 @@ class AppointmentsService {
         .toList();
   }
 
-  /// إنشاء موعد جديد من بيانات الـ bookingData القادمة من الـ BookingFlow
   Future<Appointment> createAppointment({
     required Map<String, dynamic> bookingData,
   }) async {
     final uri = Uri.parse('$baseUrl/appointments');
 
-    // bookingData فيها:
-    // 'clinic'   → Map فيه name, id
-    // 'facility' → Map فيه name, id
-    // 'doctor'   → Map فيه name, id
-    // 'date'     → DateTime
-    // 'time'     → String
 
     final clinicMap = bookingData['clinic'] as Map?;
     final facilityMap = bookingData['facility'] as Map?;
@@ -57,21 +48,17 @@ class AppointmentsService {
     final String facilityName = facilityMap?['name'] ?? '';
     final String doctorName = doctorMap?['name'] ?? '';
 
-    // نبني قيمة التاريخ+الوقت النهائية بصيغة ISO
     final String dateTimeIso = _buildDateTimeIsoString(
       dateValue,
       timeValue,
     );
 
-    // ====== التحقق من التكرار (نفس الطبيب + نفس التاريخ + نفس الوقت) ======
     if (dateValue is DateTime && doctorName.isNotEmpty) {
-      // تاريخ بصيغة YYYY-MM-DD لاستخدامه في dateTime_like
       final String dateStr =
           '${dateValue.year.toString().padLeft(4, '0')}-'
           '${dateValue.month.toString().padLeft(2, '0')}-'
           '${dateValue.day.toString().padLeft(2, '0')}';
 
-      // نبحث عن كل المواعيد لنفس الدكتور وفي نفس اليوم
       final checkUri = Uri.parse(
         '$baseUrl/appointments'
             '?doctor=$doctorName'
@@ -92,11 +79,9 @@ class AppointmentsService {
         });
 
         if (alreadyBooked) {
-          // نرمي Exception عشان تقدر تعرض رسالة للمستخدم في الـ UI
           throw Exception('هذا الموعد محجوز مسبقًا، اختر وقتًا آخر.');
         }
       }
-      // لو الـ status مو 200 نخلي النظام يكمل ونحاول إنشاء الموعد عادي
     }
 
     // ================== إنشاء الموعد الجديد ==================
@@ -128,8 +113,7 @@ class AppointmentsService {
 
   String _buildDateTimeIsoString(dynamic dateValue, dynamic timeValue) {
     if (dateValue is DateTime && timeValue is String) {
-      // نفترض أن timeValue بصيغة تقريبية مثل "10:30" أو "09:10 ص"
-      final cleanTime = timeValue.split(' ')[0]; // ناخذ "09:10" من "09:10 ص"
+      final cleanTime = timeValue.split(' ')[0];
       final parts = cleanTime.split(':');
       final hour = int.tryParse(parts[0]) ?? 9;
       final minute = int.tryParse(
@@ -149,17 +133,14 @@ class AppointmentsService {
       return dt.toIso8601String();
     }
 
-    // fallback: الآن
+    // fallback:
     return DateTime.now().toIso8601String();
   }
-  /// جلب أقرب موعد قادم (أقرب من الآن)
   Future<Appointment?> fetchNearestUpcomingAppointment() async {
-    // نستخدم نفس الـ endpoint الخاص بالمواعيد القادمة
     final allUpcoming = await fetchAppointments(upcoming: true);
 
     final now = DateTime.now();
 
-    // نفلتر المواعيد اللي وقتها بعد الآن
     final upcoming = allUpcoming
         .where((appt) => appt.dateTime.isAfter(now))
         .toList();
@@ -168,10 +149,8 @@ class AppointmentsService {
       return null;
     }
 
-    // نرتبهم من الأقدم إلى الأحدث
     upcoming.sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
-    // أول واحد هو أقرب موعد
     return upcoming.first;
   }
 

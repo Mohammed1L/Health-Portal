@@ -23,7 +23,6 @@ class Appointment {
       clinic: json['clinic'] as String? ?? '',
       doctor: json['doctor'] as String? ?? '',
       location: json['location'] as String? ?? '',
-      // نتوقع String بصيغة ISO مثل: "2025-12-15T10:00:00.000Z"
       dateTime: DateTime.parse(json['dateTime'] as String),
       isUpcoming: json['isUpcoming'] as bool? ?? true,
     );
