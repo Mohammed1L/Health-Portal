@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../../widgets/buttons/app_button.dart';
-import '../../core/hijri_calendar_helper.dart';import '../../core/constants/api_config.dart';
+import '../../core/hijri_calendar_helper.dart';
 import '../../core/constants/api_config.dart';
 
 
@@ -408,16 +408,17 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
       }) {
     final bool canTap =
         isCurrentMonth && date != null && isEnabled; // اليوم المسموح الضغط عليه
+    final DateTime? selectedDate = canTap ? date : null;
 
     return GestureDetector(
       onTap: () {
-        if (!canTap) return;
+        if (!canTap || selectedDate == null) return;
 
         setState(() {
-          _selectedDate = date!;
+          _selectedDate = selectedDate;
           _selectedTime = null; // reset الوقت عند تغيير التاريخ
         });
-        _loadAvailableTimes(date!);
+        _loadAvailableTimes(selectedDate);
       },
       child: Container(
         decoration: BoxDecoration(
