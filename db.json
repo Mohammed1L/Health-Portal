@@ -513,7 +513,33 @@
       "heartRate": 72,
       "bloodSugar": 120,
       "bmi": 22.857142857142858,
-      "updatedAt": "2025-12-11T10:35:25.047067"
+      "updatedAt": "2025-12-11T19:52:38.648050"
+    }
+  ],
+  "medications": [
+    {
+      "id": "1",
+      "name": "ابرة انسولين",
+      "brand": "NovoRapid",
+      "dosage": "ابرة واحدة يوميًا",
+      "timeOfDay": "09:00 ص",
+      "reminderEnabled": true
+    },
+    {
+      "id": "2",
+      "name": "اقراص ارتفاع ضغط الدم",
+      "brand": "Tabuvan",
+      "dosage": "قرص واحد يوميًا",
+      "timeOfDay": "22:00 م",
+      "reminderEnabled": true
+    },
+    {
+      "id": "3",
+      "name": "اقراص مضاد الهيستامين",
+      "brand": "Lorinase-D",
+      "dosage": "قرص واحد كل 12 ساعة",
+      "timeOfDay": "08:00 ص",
+      "reminderEnabled": false
     }
   ]
 }
