@@ -601,4 +601,5 @@ For issues and questions:
 
 ---
 
-**Note:** The appointment booking and health-record modules (and the medications/reminder system) require the backend server to be running. If the backend is not active, these features will show empty states or controlled error messages.
+**Note:** TNote: This app uses JSON Server as the backend during development.
+Ensure that the JSON mock server (db.json) is running for appointments, health records, and medications to load correctly.
