@@ -23,6 +23,8 @@ A comprehensive Flutter application for managing health appointments, medical re
 - **Appointment Management** - Book, view, and manage medical appointments
 - **Health Records** - View personal health metrics and measurements
 - **Medication Tracking** - Schedule and log medications with calendar view
+- **Medication Management** - Manage the list of medications, dosage, and time of day
+- **Medication Reminders** - Enable or disable reminders and track remaining daily doses
 - **Vaccination Records** - Track vaccination history
 - **Results Management** - View lab and radiology results
 - **Insurance Information** - Manage insurance details and approvals
@@ -119,6 +121,7 @@ The application uses a JSON Server backend for development. This provides mock A
 - Available time slots
 - Appointments
 - Health records
+- Medications
 
 ### Starting the Backend Server
 
@@ -146,6 +149,9 @@ The following endpoints are used by the application:
 - `GET /appointments?status={upcoming|previous}` - Get appointments
 - `POST /appointments` - Create new appointment
 - `GET /health-records` - Get health records
+- `GET /medications` - Get medications list (for schedule and log)
+- `POST /medications` - Add a new medication
+- `PUT /medications/:id` - Update medication reminder and details
 
 ### Automatic Platform-Based Base URL
 
@@ -313,7 +319,8 @@ lib/
 │   └── theme_helper.dart
 ├── models/             # Data models
 │   ├── appointment.dart
-│   └── health_record.dart
+│   ├── health_record.dart
+│   └── medication.dart
 ├── screens/            # App screens
 │   ├── booking/        # Booking flow screens
 │   │   ├── booking_flow_screen.dart
@@ -330,6 +337,7 @@ lib/
 │   ├── login_screen.dart
 │   ├── main_navigation_screen.dart
 │   ├── medications_screen.dart
+│   ├── add_medication_screen.dart
 │   ├── more_screen.dart
 │   ├── profile_details_screen.dart
 │   ├── profile_screen.dart
@@ -340,7 +348,8 @@ lib/
 │   ├── booking_lookup_service.dart
 │   ├── doctors_service.dart
 │   ├── facilities_service.dart
-│   └── health_record_service.dart
+│   ├── health_record_service.dart
+│   └── medications_service.dart
 ├── theme/              # Theme configuration
 │   ├── app_theme.dart
 │   └── theme_provider.dart
@@ -434,10 +443,22 @@ Multi-step appointment booking process:
 
 - **Profile Details** - Personal information
 - **Health Record** - Health metrics and measurements
-- **Medications** - Medication schedule and log
+- **Medications** - Medication schedule, daily doses, and reminder toggles
 - **Vaccinations** - Vaccination records
 - **Insurance Information** - Insurance policy details
 - **Insurance Approvals** - Approval requests and status
+
+### Medications and Reminder System
+
+- The medications module allows users to view their medication schedule by day, see remaining doses for the selected date, and review a full medication log.
+- Users can enable or disable reminders for each medication using a toggle switch, which updates the backend through MedicationsService.
+- New medications can be added via a dedicated form that collects name, brand, dosage, and time of day, then sends them to the backend.
+- This module is implemented mainly in:
+   - `lib/models/medication.dart`
+   - `lib/services/medications_service.dart`
+   - `lib/screens/medications_screen.dart`
+   - `lib/screens/add_medication_screen.dart`
+     and corresponds to the task: Building the medication management and reminder system.
 
 ## Theme System
 
@@ -512,9 +533,9 @@ flutter doctor
 - Check `lib/main.dart` for proper setup
 - Verify `ChangeNotifierProvider` is used
 
-## Development Workflow
+### Development Workflow
 
-### 1. Start Development
+#### 1. Start Development
 
 ```bash
 # Terminal 1: Start backend
@@ -524,14 +545,14 @@ json-server --watch db.json --port 3000
 flutter run
 ```
 
-### 2. Hot Reload
+#### 2. Hot Reload
 
 While the app is running:
 - Press `r` in the terminal for hot reload
 - Press `R` for hot restart
 - Press `q` to quit
 
-### 3. Code Formatting
+#### 3. Code Formatting
 
 ```bash
 # Format all Dart files
@@ -541,7 +562,7 @@ dart format .
 flutter format .
 ```
 
-### 4. Analyze Code
+#### 4. Analyze Code
 
 ```bash
 flutter analyze
@@ -580,4 +601,4 @@ For issues and questions:
 
 ---
 
-**Note:** The appointment booking and health-record modules require the backend server to be running. If the backend is not active, these features will show empty states or controlled error messages.
+**Note:** The appointment booking and health-record modules (and the medications/reminder system) require the backend server to be running. If the backend is not active, these features will show empty states or controlled error messages.
