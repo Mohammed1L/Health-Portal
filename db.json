@@ -1,0 +1,546 @@
+{
+  "clinics": [
+    {
+      "id": "1",
+      "name": "عيادة القلب"
+    },
+    {
+      "id": "2",
+      "name": "عيادة طب الأسرة"
+    },
+    {
+      "id": "3",
+      "name": "عيادة طب الأسنان"
+    },
+    {
+      "id": "4",
+      "name": "عيادة الأمراض الجلدية"
+    },
+    {
+      "id": "5",
+      "name": "عيادة الأنف والأذن والحنجرة"
+    },
+    {
+      "id": "6",
+      "name": "عيادة طب العيون"
+    },
+    {
+      "id": "7",
+      "name": "عيادة الأطفال"
+    }
+  ],
+  "facilities": [
+    {
+      "id": "1",
+      "clinicId": "1",
+      "name": "مستشفى الملك فهد",
+      "location": "الخبر",
+      "distance": "5.2 كم",
+      "rating": 4.8
+    },
+    {
+      "id": "2",
+      "clinicId": "1",
+      "name": "مركز القلب التخصصي",
+      "location": "الدمام",
+      "distance": "12.3 كم",
+      "rating": 4.5
+    },
+    {
+      "id": "3",
+      "clinicId": "2",
+      "name": "مركز الرعاية الأولية - حي أحد",
+      "location": "الدمام",
+      "distance": "7.0 كم",
+      "rating": 4
+    },
+    {
+      "id": "4",
+      "clinicId": "3",
+      "name": "مجمع عيادات الأسنان الشامل",
+      "location": "الخبر",
+      "distance": "3.5 كم",
+      "rating": 4.7
+    },
+    {
+      "id": "5",
+      "clinicId": "4",
+      "name": "مركز الأمراض الجلدية المتقدم",
+      "location": "الظهران",
+      "distance": "9.8 كم",
+      "rating": 4.3
+    }
+  ],
+  "doctors": [
+    {
+      "id": "1",
+      "clinicId": "1",
+      "facilityId": "1",
+      "name": "د. أحمد محمد",
+      "specialization": "أمراض القلب",
+      "rating": 5
+    },
+    {
+      "id": "2",
+      "clinicId": "1",
+      "facilityId": "2",
+      "name": "د. سارة علي",
+      "specialization": "أمراض القلب",
+      "rating": 4.5
+    },
+    {
+      "id": "3",
+      "clinicId": "2",
+      "facilityId": "3",
+      "name": "د. فاطمة سعيد",
+      "specialization": "طب الأسرة",
+      "rating": 4.2
+    },
+    {
+      "id": "4",
+      "clinicId": "3",
+      "facilityId": "4",
+      "name": "د. محمد حسن",
+      "specialization": "طب الأسنان",
+      "rating": 4.9
+    },
+    {
+      "id": "5",
+      "clinicId": "4",
+      "facilityId": "5",
+      "name": "د. خالد راشد",
+      "specialization": "الأمراض الجلدية",
+      "rating": 4.4
+    }
+  ],
+  "time-slots": [
+    {
+      "id": "1",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-15",
+      "time": "9:10 ص"
+    },
+    {
+      "id": "2",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-15",
+      "time": "10:10 ص"
+    },
+    {
+      "id": "3",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-15",
+      "time": "11:00 ص"
+    },
+    {
+      "id": "4",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-18",
+      "time": "9:00 ص"
+    },
+    {
+      "id": "5",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-18",
+      "time": "9:30 ص"
+    },
+    {
+      "id": "6",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-18",
+      "time": "10:00 ص"
+    },
+    {
+      "id": "7",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-22",
+      "time": "11:00 ص"
+    },
+    {
+      "id": "8",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-22",
+      "time": "11:30 ص"
+    },
+    {
+      "id": "9",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-25",
+      "time": "9:15 ص"
+    },
+    {
+      "id": "10",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-25",
+      "time": "9:45 ص"
+    },
+    {
+      "id": "11",
+      "clinicId": "1",
+      "facilityId": "1",
+      "doctorId": "1",
+      "date": "2025-12-25",
+      "time": "10:15 ص"
+    },
+    {
+      "id": "12",
+      "clinicId": "1",
+      "facilityId": "2",
+      "doctorId": "2",
+      "date": "2025-12-16",
+      "time": "9:30 ص"
+    },
+    {
+      "id": "13",
+      "clinicId": "1",
+      "facilityId": "2",
+      "doctorId": "2",
+      "date": "2025-12-16",
+      "time": "10:30 ص"
+    },
+    {
+      "id": "14",
+      "clinicId": "1",
+      "facilityId": "2",
+      "doctorId": "2",
+      "date": "2025-12-19",
+      "time": "9:00 ص"
+    },
+    {
+      "id": "15",
+      "clinicId": "1",
+      "facilityId": "2",
+      "doctorId": "2",
+      "date": "2025-12-19",
+      "time": "9:30 ص"
+    },
+    {
+      "id": "16",
+      "clinicId": "1",
+      "facilityId": "2",
+      "doctorId": "2",
+      "date": "2025-12-19",
+      "time": "10:00 ص"
+    },
+    {
+      "id": "17",
+      "clinicId": "1",
+      "facilityId": "2",
+      "doctorId": "2",
+      "date": "2025-12-23",
+      "time": "11:00 ص"
+    },
+    {
+      "id": "18",
+      "clinicId": "1",
+      "facilityId": "2",
+      "doctorId": "2",
+      "date": "2025-12-23",
+      "time": "11:30 ص"
+    },
+    {
+      "id": "19",
+      "clinicId": "1",
+      "facilityId": "2",
+      "doctorId": "2",
+      "date": "2025-12-23",
+      "time": "12:00 م"
+    },
+    {
+      "id": "20",
+      "clinicId": "2",
+      "facilityId": "3",
+      "doctorId": "3",
+      "date": "2025-12-10",
+      "time": "9:00 ص"
+    },
+    {
+      "id": "21",
+      "clinicId": "2",
+      "facilityId": "3",
+      "doctorId": "3",
+      "date": "2025-12-10",
+      "time": "9:30 ص"
+    },
+    {
+      "id": "22",
+      "clinicId": "2",
+      "facilityId": "3",
+      "doctorId": "3",
+      "date": "2025-12-10",
+      "time": "10:00 ص"
+    },
+    {
+      "id": "23",
+      "clinicId": "2",
+      "facilityId": "3",
+      "doctorId": "3",
+      "date": "2025-12-14",
+      "time": "11:00 ص"
+    },
+    {
+      "id": "24",
+      "clinicId": "2",
+      "facilityId": "3",
+      "doctorId": "3",
+      "date": "2025-12-14",
+      "time": "11:30 ص"
+    },
+    {
+      "id": "25",
+      "clinicId": "2",
+      "facilityId": "3",
+      "doctorId": "3",
+      "date": "2025-12-20",
+      "time": "9:15 ص"
+    },
+    {
+      "id": "26",
+      "clinicId": "2",
+      "facilityId": "3",
+      "doctorId": "3",
+      "date": "2025-12-20",
+      "time": "9:45 ص"
+    },
+    {
+      "id": "27",
+      "clinicId": "2",
+      "facilityId": "3",
+      "doctorId": "3",
+      "date": "2025-12-20",
+      "time": "10:15 ص"
+    },
+    {
+      "id": "28",
+      "clinicId": "2",
+      "facilityId": "3",
+      "doctorId": "3",
+      "date": "2025-12-27",
+      "time": "12:00 م"
+    },
+    {
+      "id": "29",
+      "clinicId": "2",
+      "facilityId": "3",
+      "doctorId": "3",
+      "date": "2025-12-27",
+      "time": "12:30 م"
+    },
+    {
+      "id": "30",
+      "clinicId": "3",
+      "facilityId": "4",
+      "doctorId": "4",
+      "date": "2025-12-05",
+      "time": "9:00 ص"
+    },
+    {
+      "id": "31",
+      "clinicId": "3",
+      "facilityId": "4",
+      "doctorId": "4",
+      "date": "2025-12-05",
+      "time": "9:30 ص"
+    },
+    {
+      "id": "32",
+      "clinicId": "3",
+      "facilityId": "4",
+      "doctorId": "4",
+      "date": "2025-12-05",
+      "time": "10:00 ص"
+    },
+    {
+      "id": "33",
+      "clinicId": "3",
+      "facilityId": "4",
+      "doctorId": "4",
+      "date": "2025-12-09",
+      "time": "11:00 ص"
+    },
+    {
+      "id": "34",
+      "clinicId": "3",
+      "facilityId": "4",
+      "doctorId": "4",
+      "date": "2025-12-09",
+      "time": "11:30 ص"
+    },
+    {
+      "id": "35",
+      "clinicId": "3",
+      "facilityId": "4",
+      "doctorId": "4",
+      "date": "2025-12-17",
+      "time": "9:15 ص"
+    },
+    {
+      "id": "36",
+      "clinicId": "3",
+      "facilityId": "4",
+      "doctorId": "4",
+      "date": "2025-12-17",
+      "time": "9:45 ص"
+    },
+    {
+      "id": "37",
+      "clinicId": "3",
+      "facilityId": "4",
+      "doctorId": "4",
+      "date": "2025-12-17",
+      "time": "10:15 ص"
+    },
+    {
+      "id": "38",
+      "clinicId": "4",
+      "facilityId": "5",
+      "doctorId": "5",
+      "date": "2025-12-06",
+      "time": "9:00 ص"
+    },
+    {
+      "id": "39",
+      "clinicId": "4",
+      "facilityId": "5",
+      "doctorId": "5",
+      "date": "2025-12-06",
+      "time": "9:30 ص"
+    },
+    {
+      "id": "40",
+      "clinicId": "4",
+      "facilityId": "5",
+      "doctorId": "5",
+      "date": "2025-12-12",
+      "time": "10:00 ص"
+    },
+    {
+      "id": "41",
+      "clinicId": "4",
+      "facilityId": "5",
+      "doctorId": "5",
+      "date": "2025-12-12",
+      "time": "10:30 ص"
+    },
+    {
+      "id": "42",
+      "clinicId": "4",
+      "facilityId": "5",
+      "doctorId": "5",
+      "date": "2025-12-24",
+      "time": "11:00 ص"
+    },
+    {
+      "id": "43",
+      "clinicId": "4",
+      "facilityId": "5",
+      "doctorId": "5",
+      "date": "2025-12-24",
+      "time": "11:30 ص"
+    },
+    {
+      "id": "44",
+      "clinicId": "4",
+      "facilityId": "5",
+      "doctorId": "5",
+      "date": "2025-12-30",
+      "time": "9:15 ص"
+    },
+    {
+      "id": "45",
+      "clinicId": "4",
+      "facilityId": "5",
+      "doctorId": "5",
+      "date": "2025-12-30",
+      "time": "9:45 ص"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "1",
+      "clinic": "عيادة القلب",
+      "doctor": "د. أحمد محمد",
+      "location": "مستشفى الملك فهد",
+      "dateTime": "2025-12-15T10:00:00.000Z",
+      "status": "upcoming",
+      "isUpcoming": true
+    },
+    {
+      "id": "2",
+      "clinic": "عيادة طب الأسنان",
+      "doctor": "د. محمد حسن",
+      "location": "مجمع عيادات الأسنان الشامل",
+      "dateTime": "2025-11-01T14:30:00.000Z",
+      "status": "previous",
+      "isUpcoming": false
+    },
+    {
+      "id": "e0ef",
+      "clinic": "عيادة القلب",
+      "doctor": "د. أحمد محمد",
+      "location": "مستشفى الملك فهد",
+      "dateTime": "2025-12-15T09:10:00.000",
+      "status": "upcoming",
+      "isUpcoming": true
+    },
+    {
+      "id": "d50b",
+      "clinic": "عيادة القلب",
+      "doctor": "د. أحمد محمد",
+      "location": "مستشفى الملك فهد",
+      "dateTime": "2025-12-15T10:10:00.000",
+      "status": "upcoming",
+      "isUpcoming": true
+    },
+    {
+      "id": "69aa",
+      "clinic": "عيادة القلب",
+      "doctor": "د. أحمد محمد",
+      "location": "مستشفى الملك فهد",
+      "dateTime": "2025-12-15T11:00:00.000",
+      "status": "upcoming",
+      "isUpcoming": true
+    },
+    {
+      "id": "1fc9",
+      "clinic": "عيادة طب الأسرة",
+      "doctor": "د. فاطمة سعيد",
+      "location": "مركز الرعاية الأولية - حي أحد",
+      "dateTime": "2025-12-27T12:00:00.000",
+      "status": "upcoming",
+      "isUpcoming": true
+    }
+  ],
+  "health-records": [
+    {
+      "id": "1",
+      "heightCm": 175,
+      "weightKg": 70,
+      "bloodPressure": "127/71",
+      "heartRate": 72,
+      "bloodSugar": 120,
+      "bmi": 22.857142857142858,
+      "updatedAt": "2025-12-11T10:35:25.047067"
+    }
+  ]
+}

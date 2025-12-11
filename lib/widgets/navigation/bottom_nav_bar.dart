@@ -22,7 +22,7 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDark ? const Color(0xFF0D4A2E) : Colors.white; // Dark green for dark mode
-    
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Container(
@@ -56,7 +56,6 @@ class BottomNavBar extends StatelessWidget {
                   label: 'المواعيد',
                   index: NavItem.appointments,
                   isActive: currentIndex == NavItem.appointments,
-                  badge: '99+',
                 ),
                 _buildNavItem(
                   context,
@@ -93,7 +92,6 @@ class BottomNavBar extends StatelessWidget {
     required String label,
     required NavItem index,
     required bool isActive,
-    String? badge,
   }) {
     return Expanded(
       child: GestureDetector(
@@ -114,34 +112,7 @@ class BottomNavBar extends StatelessWidget {
                           : Colors.grey[600]),
                   size: 24,
                 ),
-                if (badge != null && index == NavItem.appointments)
-                  Positioned(
-                    right: -8,
-                    top: -8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 20,
-                        minHeight: 16,
-                      ),
-                      child: Text(
-                        badge,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
+
               ],
             ),
             const SizedBox(height: 4),

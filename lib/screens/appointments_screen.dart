@@ -5,6 +5,11 @@ import '../core/responsive.dart';
 import '../widgets/app_bar/theme_toggle_button.dart';
 import 'booking/booking_flow_screen.dart';
 
+// NEW:
+import '../models/appointment.dart';
+import '../services/appointments_service.dart';
+import '../../core/constants/api_config.dart';
+
 enum AppointmentTab { upcoming, previous }
 
 class AppointmentsScreen extends StatefulWidget {
@@ -16,6 +21,21 @@ class AppointmentsScreen extends StatefulWidget {
 
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   AppointmentTab _selectedTab = AppointmentTab.upcoming;
+
+  // NEW: Service + state
+  final AppointmentsService _appointmentsService =
+  AppointmentsService(baseUrl: ApiConfig.baseUrl); // عدّلها حسب السيرفر
+  //final AppointmentsService _appointmentsService = AppointmentsService();
+
+  List<Appointment> _appointments = [];
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppointments();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,10 +62,14 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                         Expanded(
                           child: Text(
                             'مواعيدي',
-                            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .displaySmall
+                                ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color:
+                              Theme.of(context).colorScheme.onSurface,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -115,7 +139,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         setState(() {
           _selectedTab = tab;
         });
-        // TODO: Filter appointments based on selected tab
+        // NEW: إعادة تحميل المواعيد بناءً على التاب
         _loadAppointments();
       },
       child: Container(
@@ -138,7 +162,33 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   Widget _buildAppointmentList() {
-    // TODO: Replace with actual appointment data based on selected tab
+    // NEW: حالات التحميل والخطأ
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: Text(
+            _errorMessage!,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.red[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    // NEW: استخدام البيانات القادمة من السيرفر
     final appointments = _getAppointments();
 
     if (appointments.isEmpty) {
@@ -237,7 +287,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               const SizedBox(height: 4),
               Text(
                 value.isEmpty ? label : value,
-                style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ],
           ),
@@ -254,42 +307,71 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       isFullWidth: true,
       backgroundColor: const Color(0xFF00A86B),
       textColor: Theme.of(context).colorScheme.surface,
-      onPressed: () {
-        Navigator.of(context).push(
+      onPressed: () async {
+        final result = await Navigator.of(context).push<bool>(
           MaterialPageRoute(
             builder: (context) => const BookingFlowScreen(),
           ),
         );
+
+        // NEW: لو تم الحجز بنجاح، رجّع true من صفحة الحجز → نعمل refresh
+        if (result == true) {
+          _loadAppointments();
+        }
       },
     );
   }
 
-  // TODO: Replace with actual data fetching logic
+  // NEW: تحويل List<Appointment> إلى List<Map<String, String>> للـ UI
   List<Map<String, String>> _getAppointments() {
-    // This is placeholder data - replace with actual API call or state management
-    if (_selectedTab == AppointmentTab.upcoming) {
-      // Return upcoming appointments
-      return [
-        {
-          'clinic': 'عيادة القلب',
-          'doctor': 'د. أحمد محمد',
-          'location': 'مستشفى الملك فهد',
-          'dateTime': '2024-01-15 - 10:00 صباحاً',
-        },
-      ];
-    } else {
-      // Return previous appointments
-      return [];
+    return _appointments.map((appointment) {
+      return {
+        'clinic': appointment.clinic,
+        'doctor': appointment.doctor,
+        'location': appointment.location,
+        'dateTime': _formatAppointmentDateTime(appointment.dateTime),
+      };
+    }).toList();
+  }
+
+  String _formatAppointmentDateTime(DateTime dateTime) {
+    final date =
+        '${dateTime.year}-${_twoDigits(dateTime.month)}-${_twoDigits(dateTime.day)}';
+    final time =
+        '${_twoDigits(dateTime.hour)}:${_twoDigits(dateTime.minute)}';
+    return '$date $time';
+  }
+
+  String _twoDigits(int n) => n.toString().padLeft(2, '0');
+
+  // NEW: تحميل المواعيد من الـ API
+  Future<void> _loadAppointments() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final result = await _appointmentsService.fetchAppointments(
+        upcoming: _selectedTab == AppointmentTab.upcoming,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _appointments = result;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'حدث خطأ أثناء جلب المواعيد، حاول مرة أخرى.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-
-  // TODO: Implement actual data loading logic
-  void _loadAppointments() {
-    // This method will be called when tab changes
-    // Implement your data fetching logic here
-    setState(() {
-      // Refresh the appointment list
-    });
-  }
 }
-

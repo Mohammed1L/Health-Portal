@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../../widgets/inputs/app_text_field.dart';
 import '../../widgets/cards/app_card.dart';
+
+// NEW: service
+import '../../services/doctors_service.dart';
+import '../../core/constants/api_config.dart';
 
 class BookingStep3Doctor extends StatefulWidget {
   final Function(Map<String, dynamic>) onDoctorSelected;
@@ -23,10 +28,57 @@ class _BookingStep3DoctorState extends State<BookingStep3Doctor> {
   String _searchQuery = '';
   String? _selectedDoctorId;
 
+  // NEW: service + state
+  final DoctorsService _doctorsService =
+  DoctorsService(baseUrl: ApiConfig.baseUrl); // عدّلها لو احتجت
+
+  List<Map<String, dynamic>> _allDoctors = [];
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDoctors();
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadDoctors() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _allDoctors = [];
+      _selectedDoctorId = null;
+    });
+
+    try {
+      final doctors = await _doctorsService.fetchDoctors(
+        clinicId: widget.selectedClinicId,
+        facilityId: widget.selectedFacilityId,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _allDoctors = doctors;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'حدث خطأ أثناء جلب الأطباء. حاول مرة أخرى.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -39,9 +91,9 @@ class _BookingStep3DoctorState extends State<BookingStep3Doctor> {
           Text(
             'اختر الطبيب',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: 16),
           _buildSearchBar(),
@@ -67,13 +119,43 @@ class _BookingStep3DoctorState extends State<BookingStep3Doctor> {
         setState(() {
           _searchQuery = value;
         });
-        // TODO: Implement search logic
-        _performSearch(value);
       },
     );
   }
 
   Widget _buildDoctorList() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _errorMessage!,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.red[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _loadDoctors,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF003C71),
+              ),
+              child: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ),
+      );
+    }
+
     final doctors = _getFilteredDoctors();
 
     if (doctors.isEmpty) {
@@ -92,7 +174,7 @@ class _BookingStep3DoctorState extends State<BookingStep3Doctor> {
       itemCount: doctors.length,
       itemBuilder: (context, index) {
         final doctor = doctors[index];
-        final isSelected = _selectedDoctorId == doctor['id'];
+        final isSelected = _selectedDoctorId == doctor['id'].toString();
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -103,29 +185,27 @@ class _BookingStep3DoctorState extends State<BookingStep3Doctor> {
   }
 
   Widget _buildDoctorCard(Map<String, dynamic> doctor, bool isSelected) {
-    final name = doctor['name'] as String;
-    final rating = doctor['rating'] as double;
+    final name = doctor['name'] as String? ?? '';
+    final rating = (doctor['rating'] as num?)?.toDouble() ?? 0.0;
+    final specialization = doctor['specialization'] as String? ?? '';
 
     return AppCard(
       isOutlined: true,
       padding: const EdgeInsets.all(16),
       color: Theme.of(context).colorScheme.surface,
       border: Border.all(
-        color: isSelected
-            ? const Color(0xFF00A86B)
-            : Colors.grey[300]!,
+        color: isSelected ? const Color(0xFF00A86B) : Colors.grey[300]!,
         width: isSelected ? 2 : 1,
       ),
       onTap: () {
         setState(() {
-          _selectedDoctorId = doctor['id'] as String;
+          _selectedDoctorId = doctor['id'].toString();
         });
-        // Notify parent of selection
         widget.onDoctorSelected(doctor);
       },
       child: Row(
         children: [
-          // Profile icon/avatar
+          // avatar
           Container(
             width: 50,
             height: 50,
@@ -143,28 +223,37 @@ class _BookingStep3DoctorState extends State<BookingStep3Doctor> {
             ),
           ),
           const SizedBox(width: 16),
-          // Doctor details
+          // details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Doctor name
                 Text(
                   name,
-                  style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  specialization,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                  ),
                 ),
                 const SizedBox(height: 8),
-                // Star rating
                 _buildStarRating(rating),
               ],
             ),
           ),
-          // Checkbox
           Checkbox(
             value: isSelected,
             onChanged: (value) {
               setState(() {
-                _selectedDoctorId = value! ? doctor['id'] as String : null;
+                _selectedDoctorId =
+                value == true ? doctor['id'].toString() : null;
               });
               if (value == true) {
                 widget.onDoctorSelected(doctor);
@@ -185,21 +274,18 @@ class _BookingStep3DoctorState extends State<BookingStep3Doctor> {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (index) {
         if (index < rating.floor()) {
-          // Filled star
           return const Icon(
             Icons.star,
             color: Color(0xFF00A86B),
             size: 18,
           );
         } else if (index < rating) {
-          // Half star (we'll use filled for simplicity)
           return const Icon(
             Icons.star,
             color: Color(0xFF00A86B),
             size: 18,
           );
         } else {
-          // Empty star
           return Icon(
             Icons.star_border,
             color: Colors.grey[400],
@@ -210,68 +296,18 @@ class _BookingStep3DoctorState extends State<BookingStep3Doctor> {
     );
   }
 
-  // TODO: Replace with actual API call to fetch doctors based on selected clinic and facility
-  List<Map<String, dynamic>> _getAllDoctors() {
-    // This should filter doctors based on widget.selectedClinicId and widget.selectedFacilityId
-    return [
-      {
-        'id': '1',
-        'name': 'د. أحمد محمد',
-        'rating': 5.0,
-        'specialization': 'طب الأسنان',
-      },
-      {
-        'id': '2',
-        'name': 'د. فاطمة علي',
-        'rating': 4.0,
-        'specialization': 'طب الأسرة',
-      },
-      {
-        'id': '3',
-        'name': 'د. خالد سعيد',
-        'rating': 5.0,
-        'specialization': 'الأمراض الجلدية',
-      },
-      {
-        'id': '4',
-        'name': 'د. سارة أحمد',
-        'rating': 4.5,
-        'specialization': 'الأنف والأذن والحنجرة',
-      },
-      {
-        'id': '5',
-        'name': 'د. محمد حسن',
-        'rating': 5.0,
-        'specialization': 'طب العيون',
-      },
-    ];
-  }
-
-  // TODO: Implement actual search/filter logic
   List<Map<String, dynamic>> _getFilteredDoctors() {
-    final allDoctors = _getAllDoctors();
-
     if (_searchQuery.isEmpty) {
-      return allDoctors;
+      return _allDoctors;
     }
 
-    return allDoctors
-        .where((doctor) {
-          final name = (doctor['name'] as String).toLowerCase();
-          final specialization = (doctor['specialization'] as String).toLowerCase();
-          final query = _searchQuery.toLowerCase();
-          return name.contains(query) || specialization.contains(query);
-        })
-        .toList();
-  }
+    final query = _searchQuery.toLowerCase();
 
-  // TODO: Implement actual search API call
-  void _performSearch(String query) {
-    // This method will be called when user types in search
-    // Implement your search API call here
-    setState(() {
-      // Update filtered list
-    });
+    return _allDoctors.where((doctor) {
+      final name = (doctor['name'] ?? '').toString().toLowerCase();
+      final specialization =
+      (doctor['specialization'] ?? '').toString().toLowerCase();
+      return name.contains(query) || specialization.contains(query);
+    }).toList();
   }
 }
-

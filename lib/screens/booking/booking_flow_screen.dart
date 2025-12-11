@@ -5,12 +5,16 @@ import 'booking_step3_doctor.dart';
 import 'booking_step4_date_time.dart';
 import 'booking_step5_review.dart';
 
+// NEW: استيراد الـ Service
+import '../../services/appointments_service.dart';
+import '../../core/constants/api_config.dart';
+
 enum BookingStep {
-  clinic, // Step 1: Choose Clinic
+  clinic,   // Step 1: Choose Clinic
   facility, // Step 2: Choose Facility
-  doctor, // Step 3: Choose Doctor
-  date, // Step 4: Choose Date/Time
-  review, // Step 5: Review and Confirm
+  doctor,   // Step 3: Choose Doctor
+  date,     // Step 4: Choose Date/Time
+  review,   // Step 5: Review and Confirm
 }
 
 class BookingFlowScreen extends StatefulWidget {
@@ -26,6 +30,11 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
 
   // Store booking data as user progresses
   final Map<String, dynamic> _bookingData = {};
+
+  // NEW: Service + حالة الإرسال
+  final AppointmentsService _appointmentsService =
+  AppointmentsService(baseUrl: ApiConfig.baseUrl); // عدّلها حسب السيرفر
+  bool _isSubmitting = false;
 
   void _goToNextStep() {
     setState(() {
@@ -43,7 +52,7 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
           _currentStep = BookingStep.review;
           break;
         case BookingStep.review:
-          // This should not be called, review step handles confirmation
+        // This should not be called, review step handles confirmation
           break;
       }
     });
@@ -83,16 +92,46 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
     });
   }
 
-  void _submitBooking() {
-    // TODO: Implement booking submission logic
-    // This will be handled by the backend team
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم حجز الموعد بنجاح'),
-        backgroundColor: Colors.green,
-      ),
-    );
-    Navigator.of(context).pop();
+  // NEW: تنفيذ الحجز فعليًا عبر الـ API
+  Future<void> _submitBooking() async {
+    if (_isSubmitting) return;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      await _appointmentsService.createAppointment(
+        bookingData: _bookingData,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم حجز الموعد بنجاح'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // نرجع true عشان صفحة المواعيد تعرف إنه تم حجز موعد جديد وتعمل refresh
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('فشل حجز الموعد، حاول مرة أخرى.\n$e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   int _getCurrentStepNumber() {
@@ -146,9 +185,9 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
               'حجز موعد',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
           ),
           const SizedBox(width: 48), // Balance the back button
@@ -178,7 +217,7 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
           Row(
             children: List.generate(
               _totalSteps,
-              (index) => Expanded(
+                  (index) => Expanded(
                 child: Container(
                   height: 4,
                   margin: EdgeInsets.only(
@@ -271,6 +310,4 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
         );
     }
   }
-
 }
-

@@ -1,6 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 import '../../widgets/buttons/app_button.dart';
-import '../../core/hijri_calendar_helper.dart';
+import '../../core/hijri_calendar_helper.dart';import '../../core/constants/api_config.dart';
+import '../../core/constants/api_config.dart';
+
 
 class BookingStep4DateTime extends StatefulWidget {
   final Function(DateTime selectedDate, String selectedTime) onDateTimeSelected;
@@ -26,6 +31,15 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   DateTime _currentMonth = DateTime.now();
   String? _selectedTime;
 
+  // ربط API للأوقات
+  final String _baseUrl = ApiConfig.baseUrl; // TODO: عدّلها حسب السيرفر
+  List<String> _availableTimes = [];
+  bool _isLoadingTimes = false;
+  String? _timesError;
+
+  // الأيام التي يوجد لها مواعيد متاحة (مستخرجة من الـ API)
+  Set<DateTime> _availableDates = {};
+
   // Arabic day names
   final List<String> _dayNames = [
     'أحد',
@@ -38,6 +52,17 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // لو كل شيء مختار (عيادة + منشأة + طبيب) نقدر نحمّل البيانات
+    if (widget.selectedClinicId != null &&
+        widget.selectedFacilityId != null &&
+        widget.selectedDoctorId != null) {
+      _loadAvailableDates(); // نجيب الأيام المتاحة، والأوقات لأول يوم متاح
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -47,9 +72,9 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
           Text(
             'التاريخ والوقت',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: 20),
           _buildCalendarToggle(),
@@ -89,14 +114,12 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
       onTap: () {
         setState(() {
           if (_isHijri != isHijriValue) {
-            // Convert current date to the other calendar system
             if (isHijriValue) {
-              // Converting to Hijri view
+              // الانتقال لعرض هجري
               final hijriDate = HijriDate.fromGregorian(_currentMonth);
               _currentMonth = hijriDate.toGregorian();
             } else {
-              // Already in Gregorian
-              // No conversion needed
+              // الرجوع لميلادي (نفس القيمة الحالية كـ Gregorian)
             }
             _isHijri = isHijriValue;
           }
@@ -114,9 +137,7 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: isSelected
-                ? const Color(0xFF00A86B)
-                : Colors.grey[600],
+            color: isSelected ? const Color(0xFF00A86B) : Colors.grey[600],
           ),
         ),
       ),
@@ -138,16 +159,16 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   Widget _buildMonthHeader() {
     String monthName;
     int year;
-    
-            if (_isHijri) {
-              final hijriDate = HijriDate.fromGregorian(_currentMonth);
-              monthName = _getHijriMonthName(hijriDate.month);
-              year = hijriDate.year;
+
+    if (_isHijri) {
+      final hijriDate = HijriDate.fromGregorian(_currentMonth);
+      monthName = _getHijriMonthName(hijriDate.month);
+      year = hijriDate.year;
     } else {
       monthName = _getMonthName(_currentMonth.month);
       year = _currentMonth.year;
     }
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -158,7 +179,8 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
               if (_isHijri) {
                 final hijriDate = HijriDate.fromGregorian(_currentMonth);
                 final newHijri = HijriDate(
-                  year: hijriDate.month == 1 ? hijriDate.year - 1 : hijriDate.year,
+                  year:
+                  hijriDate.month == 1 ? hijriDate.year - 1 : hijriDate.year,
                   month: hijriDate.month == 1 ? 12 : hijriDate.month - 1,
                   day: 1,
                 );
@@ -187,7 +209,9 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
               if (_isHijri) {
                 final hijriDate = HijriDate.fromGregorian(_currentMonth);
                 final newHijri = HijriDate(
-                  year: hijriDate.month == 12 ? hijriDate.year + 1 : hijriDate.year,
+                  year: hijriDate.month == 12
+                      ? hijriDate.year + 1
+                      : hijriDate.year,
                   month: hijriDate.month == 12 ? 1 : hijriDate.month + 1,
                   day: 1,
                 );
@@ -226,7 +250,7 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
 
   Widget _buildCalendarGrid() {
     List<Widget> dayWidgets = [];
-    
+
     if (_isHijri) {
       // Hijri calendar
       final hijriDate = HijriDate.fromGregorian(_currentMonth);
@@ -240,23 +264,29 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
         month: hijriDate.month,
         day: hijriDate.lengthOfMonth(),
       );
-      
+
       final firstDayDate = firstDayOfMonth.toGregorian();
       final firstDayWeekday = firstDayDate.weekday % 7;
       final daysInMonth = lastDayOfMonth.lengthOfMonth();
-      
-      // Get previous month's last days
+
+      // previous month
       final prevMonth = hijriDate.month == 1 ? 12 : hijriDate.month - 1;
-      final prevYear = hijriDate.month == 1 ? hijriDate.year - 1 : hijriDate.year;
+      final prevYear =
+      hijriDate.month == 1 ? hijriDate.year - 1 : hijriDate.year;
       final prevHijri = HijriDate(year: prevYear, month: prevMonth, day: 1);
       final daysInPreviousMonth = prevHijri.lengthOfMonth();
-      
+
       // Add previous month's trailing days
       for (int i = firstDayWeekday - 1; i >= 0; i--) {
         final day = daysInPreviousMonth - i;
-        dayWidgets.add(_buildCalendarDay(day, isCurrentMonth: false));
+        dayWidgets.add(
+          _buildCalendarDay(
+            day,
+            isCurrentMonth: false,
+          ),
+        );
       }
-      
+
       // Add current month's days
       for (int day = 1; day <= daysInMonth; day++) {
         final hijriDay = HijriDate(
@@ -267,43 +297,90 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
         final date = hijriDay.toGregorian();
         final isSelected = _isSameDay(date, _selectedDate);
         final isToday = _isSameDay(date, DateTime.now());
-        dayWidgets.add(_buildCalendarDay(day, isCurrentMonth: true, isSelected: isSelected, isToday: isToday, date: date));
+
+        final normalized = DateTime(date.year, date.month, date.day);
+        final bool isEnabled = _availableDates.isEmpty
+            ? false
+            : _availableDates.contains(normalized);
+
+        dayWidgets.add(
+          _buildCalendarDay(
+            day,
+            isCurrentMonth: true,
+            isSelected: isSelected,
+            isToday: isToday,
+            date: date,
+            isEnabled: isEnabled,
+          ),
+        );
       }
-      
-      // Add next month's leading days to fill the grid
+
+      // Add next month's leading days
       final remainingDays = 42 - dayWidgets.length;
       for (int day = 1; day <= remainingDays; day++) {
-        dayWidgets.add(_buildCalendarDay(day, isCurrentMonth: false));
+        dayWidgets.add(
+          _buildCalendarDay(
+            day,
+            isCurrentMonth: false,
+          ),
+        );
       }
     } else {
       // Gregorian calendar
-      final firstDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month, 1);
-      final lastDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
+      final firstDayOfMonth =
+      DateTime(_currentMonth.year, _currentMonth.month, 1);
+      final lastDayOfMonth =
+      DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
       final firstDayWeekday = firstDayOfMonth.weekday % 7;
       final daysInMonth = lastDayOfMonth.day;
-      
-      // Get previous month's last days
-      final previousMonth = DateTime(_currentMonth.year, _currentMonth.month - 1, 0);
+
+      final previousMonth =
+      DateTime(_currentMonth.year, _currentMonth.month - 1, 0);
       final daysInPreviousMonth = previousMonth.day;
-      
+
       // Add previous month's trailing days
       for (int i = firstDayWeekday - 1; i >= 0; i--) {
         final day = daysInPreviousMonth - i;
-        dayWidgets.add(_buildCalendarDay(day, isCurrentMonth: false));
+        dayWidgets.add(
+          _buildCalendarDay(
+            day,
+            isCurrentMonth: false,
+          ),
+        );
       }
-      
+
       // Add current month's days
       for (int day = 1; day <= daysInMonth; day++) {
         final date = DateTime(_currentMonth.year, _currentMonth.month, day);
         final isSelected = _isSameDay(date, _selectedDate);
         final isToday = _isSameDay(date, DateTime.now());
-        dayWidgets.add(_buildCalendarDay(day, isCurrentMonth: true, isSelected: isSelected, isToday: isToday, date: date));
+
+        final normalized = DateTime(date.year, date.month, date.day);
+        final bool isEnabled = _availableDates.isEmpty
+            ? false
+            : _availableDates.contains(normalized);
+
+        dayWidgets.add(
+          _buildCalendarDay(
+            day,
+            isCurrentMonth: true,
+            isSelected: isSelected,
+            isToday: isToday,
+            date: date,
+            isEnabled: isEnabled,
+          ),
+        );
       }
-      
-      // Add next month's leading days to fill the grid
+
+      // Add next month's leading days
       final remainingDays = 42 - dayWidgets.length;
       for (int day = 1; day <= remainingDays; day++) {
-        dayWidgets.add(_buildCalendarDay(day, isCurrentMonth: false));
+        dayWidgets.add(
+          _buildCalendarDay(
+            day,
+            isCurrentMonth: false,
+          ),
+        );
       }
     }
 
@@ -322,30 +399,33 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   }
 
   Widget _buildCalendarDay(
-    int day, {
-    required bool isCurrentMonth,
-    bool isSelected = false,
-    bool isToday = false,
-    DateTime? date,
-  }) {
+      int day, {
+        required bool isCurrentMonth,
+        bool isSelected = false,
+        bool isToday = false,
+        DateTime? date,
+        bool isEnabled = true,
+      }) {
+    final bool canTap =
+        isCurrentMonth && date != null && isEnabled; // اليوم المسموح الضغط عليه
+
     return GestureDetector(
       onTap: () {
-        if (isCurrentMonth && date != null) {
-          setState(() {
-            _selectedDate = date;
-            _selectedTime = null; // Reset time when date changes
-          });
-          // TODO: Load available times for selected date
-          _loadAvailableTimes(date);
-        }
+        if (!canTap) return;
+
+        setState(() {
+          _selectedDate = date!;
+          _selectedTime = null; // reset الوقت عند تغيير التاريخ
+        });
+        _loadAvailableTimes(date!);
       },
       child: Container(
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFF00A86B)
               : isToday
-                  ? Colors.grey[100]
-                  : Colors.transparent,
+              ? Colors.grey[100]
+              : Colors.transparent,
           shape: BoxShape.circle,
         ),
         child: Center(
@@ -354,11 +434,13 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected
+              color: !isEnabled
+                  ? Colors.grey[300] // الأيام المعطّلة (ما فيها مواعيد)
+                  : isSelected
                   ? Colors.white
                   : isCurrentMonth
-                      ? Colors.black87
-                      : Colors.grey[400],
+                  ? Colors.black87
+                  : Colors.grey[400],
             ),
           ),
         ),
@@ -367,6 +449,21 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   }
 
   Widget _buildAvailableTimes() {
+    if (widget.selectedClinicId == null ||
+        widget.selectedFacilityId == null ||
+        widget.selectedDoctorId == null) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: Text(
+          'الرجاء اختيار العيادة والمنشأة والطبيب أولاً',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -375,9 +472,9 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
         Text(
           'الأوقات المتاحة:',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
         const SizedBox(height: 12),
         _buildTimeSlots(),
@@ -386,10 +483,44 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   }
 
   Widget _buildTimeSlots() {
-    // TODO: Replace with actual available times from API
-    final availableTimes = _getAvailableTimes(_selectedDate);
+    if (_isLoadingTimes) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
-    if (availableTimes.isEmpty) {
+    if (_timesError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _timesError!,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.red[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              AppButton(
+                text: 'إعادة المحاولة',
+                type: AppButtonType.secondary,
+                size: AppButtonSize.medium,
+                onPressed: () => _loadAvailableTimes(_selectedDate),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_availableTimes.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -407,7 +538,7 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
-      children: availableTimes.map((time) {
+      children: _availableTimes.map((time) {
         final isSelected = _selectedTime == time;
         return GestureDetector(
           onTap: () {
@@ -416,7 +547,10 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
             });
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 12,
+            ),
             decoration: BoxDecoration(
               color: isSelected
                   ? const Color(0xFF00A86B).withOpacity(0.1)
@@ -446,8 +580,11 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
   }
 
   Widget _buildBookButton() {
-    final canBook = _selectedTime != null;
-    
+    final canBook = _selectedTime != null &&
+        widget.selectedClinicId != null &&
+        widget.selectedFacilityId != null &&
+        widget.selectedDoctorId != null;
+
     return AppButton(
       text: 'حجز الموعد',
       type: AppButtonType.primary,
@@ -457,8 +594,11 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
       textColor: Theme.of(context).colorScheme.surface,
       onPressed: canBook
           ? () {
-              widget.onDateTimeSelected(_selectedDate, _selectedTime!);
-            }
+        widget.onDateTimeSelected(
+          _selectedDate,
+          _selectedTime!,
+        );
+      }
           : null,
     );
   }
@@ -506,49 +646,147 @@ class _BookingStep4DateTimeState extends State<BookingStep4DateTime> {
     return months[month - 1];
   }
 
-  // TODO: Replace with actual API call to get available times
-  List<String> _getAvailableTimes(DateTime date) {
-    // This should fetch available times from API based on:
-    // - Selected clinic
-    // - Selected facility
-    // - Selected doctor
-    // - Selected date
-    
-    // Placeholder: Return some sample times
-    if (_isSameDay(date, DateTime.now())) {
-      // For today, return times after current time
-      final now = DateTime.now();
-      if (now.hour < 9) {
-        return ['9:10 ص', '10:10 ص', '10:20 ص', '11:00 ص', '12:00 م'];
-      } else if (now.hour < 10) {
-        return ['10:10 ص', '10:20 ص', '11:00 ص', '12:00 م', '1:00 م'];
-      } else {
-        return ['2:00 م', '3:00 م', '4:00 م', '5:00 م'];
+  Future<void> _loadAvailableTimes(DateTime date) async {
+    // إذا ما فيه بيانات كافية لاختيار الطبيب/المنشأة/العيادة
+    if (widget.selectedClinicId == null ||
+        widget.selectedFacilityId == null ||
+        widget.selectedDoctorId == null) {
+      setState(() {
+        _availableTimes = [];
+        _timesError = 'الرجاء اختيار العيادة والمنشأة والطبيب أولاً';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoadingTimes = true;
+      _timesError = null;
+      _availableTimes = [];
+      _selectedTime = null;
+    });
+
+    try {
+      // نجيب كل الـ time-slots ثم نفلترها في Flutter
+      final uri = Uri.parse('$_baseUrl/time-slots');
+      final response = await http.get(uri);
+
+      if (response.statusCode != 200) {
+        throw Exception('Status code: ${response.statusCode}');
+      }
+
+      final List<dynamic> jsonList =
+      jsonDecode(response.body) as List<dynamic>;
+
+      final normalizedSelected =
+      DateTime(date.year, date.month, date.day);
+
+      final List<String> times = [];
+
+      for (final item in jsonList) {
+        if (item is! Map<String, dynamic>) continue;
+
+        // فلترة العيادة والمنشأة والطبيب
+        if (item['clinicId']?.toString() != widget.selectedClinicId) continue;
+        if (item['facilityId']?.toString() != widget.selectedFacilityId) continue;
+        if (item['doctorId']?.toString() != widget.selectedDoctorId) continue;
+
+        final dateStr = item['date']?.toString();
+        if (dateStr == null) continue;
+
+        final dt = DateTime.tryParse(dateStr);
+        if (dt == null) continue;
+
+        final normalizedSlotDate =
+        DateTime(dt.year, dt.month, dt.day);
+
+        // لازم نفس اليوم
+        if (!_isSameDay(normalizedSlotDate, normalizedSelected)) continue;
+
+        final timeStr = item['time']?.toString();
+        if (timeStr == null || timeStr.isEmpty) continue;
+
+        times.add(timeStr);
+      }
+
+      setState(() {
+        _availableTimes = times;
+      });
+    } catch (e) {
+      setState(() {
+        _timesError =
+        'حدث خطأ أثناء جلب الأوقات المتاحة، حاول مرة أخرى.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingTimes = false;
+        });
       }
     }
-    
-    // For future dates, return full day slots
-    return [
-      '9:10 ص',
-      '10:10 ص',
-      '10:20 ص',
-      '11:00 ص',
-      '12:00 م',
-      '1:00 م',
-      '2:00 م',
-      '3:00 م',
-      '4:00 م',
-      '5:00 م',
-    ];
   }
 
-  // TODO: Implement actual API call to load available times
-  void _loadAvailableTimes(DateTime date) {
-    // This method will be called when user selects a date
-    // Implement your API call here to fetch available time slots
-    setState(() {
-      // Update available times list
-    });
+  Future<void> _loadAvailableDates() async {
+    // إذا ما فيه بيانات كافية لاختيار الطبيب/المنشأة/العيادة
+    if (widget.selectedClinicId == null ||
+        widget.selectedFacilityId == null ||
+        widget.selectedDoctorId == null) {
+      return;
+    }
+
+    try {
+      final uri = Uri.parse('$_baseUrl/time-slots');
+      final response = await http.get(uri);
+
+      if (response.statusCode != 200) {
+        throw Exception('Status code: ${response.statusCode}');
+      }
+
+      final List<dynamic> jsonList =
+      jsonDecode(response.body) as List<dynamic>;
+
+      final datesSet = <DateTime>{};
+
+      for (final item in jsonList) {
+        if (item is! Map<String, dynamic>) continue;
+
+        // فلترة العيادة والمنشأة والطبيب
+        if (item['clinicId']?.toString() != widget.selectedClinicId) continue;
+        if (item['facilityId']?.toString() != widget.selectedFacilityId) continue;
+        if (item['doctorId']?.toString() != widget.selectedDoctorId) continue;
+
+        final dateStr = item['date']?.toString();
+        if (dateStr == null) continue;
+
+        final dt = DateTime.tryParse(dateStr);
+        if (dt == null) continue;
+
+        datesSet.add(DateTime(dt.year, dt.month, dt.day));
+      }
+
+      setState(() {
+        _availableDates = datesSet;
+
+        // لو فيه أيام متاحة، نضبط التاريخ المختار على أقرب يوم متاح
+        if (_availableDates.isNotEmpty) {
+          final today = DateTime(
+            _selectedDate.year,
+            _selectedDate.month,
+            _selectedDate.day,
+          );
+
+          if (!_availableDates.contains(today)) {
+            _selectedDate = _availableDates.first;
+          }
+
+          // نحمّل الأوقات لأول يوم متاح
+          _loadAvailableTimes(_selectedDate);
+        } else {
+          // ما فيه أي أيام متاحة، نفضّي الأوقات
+          _availableTimes = [];
+        }
+      });
+    } catch (e) {
+      debugPrint('Error loading available dates: $e');
+    }
   }
 }
-

@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../../widgets/inputs/app_text_field.dart';
 import '../../widgets/cards/app_card.dart';
+import '../../widgets/buttons/app_button.dart';
+
+// NEW: استدعاء الـ service
+import '../../services/facilities_service.dart';
+import '../../core/constants/api_config.dart';
 
 class BookingStep2Facility extends StatefulWidget {
   final Function(Map<String, dynamic>) onFacilitySelected;
@@ -21,10 +27,57 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
   String _searchQuery = '';
   String? _selectedFacilityId;
 
+  // NEW: service + state
+  final FacilitiesService _facilitiesService =
+  FacilitiesService(baseUrl: ApiConfig.baseUrl); // عدّلها إذا احتجت
+
+  List<Map<String, dynamic>> _allFacilities = [];
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFacilities();
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadFacilities() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _allFacilities = [];
+      _selectedFacilityId = null;
+    });
+
+    try {
+      final facilities = await _facilitiesService.fetchFacilities(
+        clinicId: widget.selectedClinicId,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _allFacilities = facilities;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage =
+        'حدث خطأ أثناء جلب المنشآت. حاول مرة أخرى.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -37,9 +90,9 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
           Text(
             'اختر المنشأة:',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: 16),
           _buildSearchBar(),
@@ -65,13 +118,43 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
         setState(() {
           _searchQuery = value;
         });
-        // TODO: Implement search logic
-        _performSearch(value);
       },
     );
   }
 
   Widget _buildFacilityList() {
+    // NEW: حالات التحميل والخطأ
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _errorMessage!,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.red[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            AppButton(
+              text: 'إعادة المحاولة',
+              type: AppButtonType.secondary,
+              size: AppButtonSize.medium,
+              onPressed: _loadFacilities,
+            ),
+          ],
+        ),
+      );
+    }
+
     final facilities = _getFilteredFacilities();
 
     if (facilities.isEmpty) {
@@ -90,7 +173,7 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
       itemCount: facilities.length,
       itemBuilder: (context, index) {
         final facility = facilities[index];
-        final isSelected = _selectedFacilityId == facility['id'];
+        final isSelected = _selectedFacilityId == facility['id'].toString();
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -101,37 +184,34 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
   }
 
   Widget _buildFacilityCard(Map<String, dynamic> facility, bool isSelected) {
-    final name = facility['name'] as String;
-    final location = facility['location'] as String;
-    final distance = facility['distance'] as String;
-    final rating = facility['rating'] as double;
+    final name = facility['name'] as String? ?? '';
+    final location = facility['location'] as String? ?? '';
+    final distance = facility['distance']?.toString() ?? '';
+    final rating = (facility['rating'] as num?)?.toDouble() ?? 0.0;
 
     return AppCard(
       isOutlined: true,
       padding: const EdgeInsets.all(16),
       color: Theme.of(context).colorScheme.surface,
       border: Border.all(
-        color: isSelected
-            ? const Color(0xFF00A86B)
-            : Colors.grey[300]!,
+        color: isSelected ? const Color(0xFF00A86B) : Colors.grey[300]!,
         width: isSelected ? 2 : 1,
       ),
       onTap: () {
         setState(() {
-          _selectedFacilityId = facility['id'] as String;
+          _selectedFacilityId = facility['id'].toString();
         });
-        // Notify parent of selection
         widget.onFacilitySelected(facility);
       },
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Checkbox
           Checkbox(
             value: isSelected,
             onChanged: (value) {
               setState(() {
-                _selectedFacilityId = value! ? facility['id'] as String : null;
+                _selectedFacilityId =
+                value == true ? facility['id'].toString() : null;
               });
               if (value == true) {
                 widget.onFacilitySelected(facility);
@@ -142,18 +222,18 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          // Facility details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Facility name
                 Text(
                   name,
-                  style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                // Location
                 Text(
                   location,
                   style: TextStyle(
@@ -162,10 +242,8 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Distance and Rating row
                 Row(
                   children: [
-                    // Distance
                     Row(
                       children: [
                         const Icon(
@@ -184,7 +262,6 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
                       ],
                     ),
                     const SizedBox(width: 16),
-                    // Rating stars
                     _buildStarRating(rating),
                   ],
                 ),
@@ -201,21 +278,18 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (index) {
         if (index < rating.floor()) {
-          // Filled star
           return const Icon(
             Icons.star,
             color: Color(0xFF00A86B),
             size: 16,
           );
         } else if (index < rating) {
-          // Half star (we'll use filled for simplicity)
           return const Icon(
             Icons.star,
             color: Color(0xFF00A86B),
             size: 16,
           );
         } else {
-          // Empty star
           return Icon(
             Icons.star_border,
             color: Colors.grey[400],
@@ -226,73 +300,18 @@ class _BookingStep2FacilityState extends State<BookingStep2Facility> {
     );
   }
 
-  // TODO: Replace with actual API call to fetch facilities based on selected clinic
-  List<Map<String, dynamic>> _getAllFacilities() {
-    // This should filter facilities based on widget.selectedClinicId
-    return [
-      {
-        'id': '1',
-        'name': 'حي جلمودة',
-        'location': 'الجبيل',
-        'distance': '5.23 كم',
-        'rating': 5.0,
-      },
-      {
-        'id': '2',
-        'name': 'حي أحد',
-        'location': 'الدمام',
-        'distance': '77.25 كم',
-        'rating': 3.0,
-      },
-      {
-        'id': '3',
-        'name': 'حي الدوحة الجنوبية',
-        'location': 'الظهران',
-        'distance': '89.23 كم',
-        'rating': 4.0,
-      },
-      {
-        'id': '4',
-        'name': 'حي الفيصلية',
-        'location': 'الرياض',
-        'distance': '120.5 كم',
-        'rating': 4.5,
-      },
-      {
-        'id': '5',
-        'name': 'حي النور',
-        'location': 'جدة',
-        'distance': '250.8 كم',
-        'rating': 5.0,
-      },
-    ];
-  }
-
-  // TODO: Implement actual search/filter logic
+  // فلترة المنشآت حسب البحث
   List<Map<String, dynamic>> _getFilteredFacilities() {
-    final allFacilities = _getAllFacilities();
-
     if (_searchQuery.isEmpty) {
-      return allFacilities;
+      return _allFacilities;
     }
 
-    return allFacilities
-        .where((facility) {
-          final name = (facility['name'] as String).toLowerCase();
-          final location = (facility['location'] as String).toLowerCase();
-          final query = _searchQuery.toLowerCase();
-          return name.contains(query) || location.contains(query);
-        })
-        .toList();
-  }
+    final query = _searchQuery.toLowerCase();
 
-  // TODO: Implement actual search API call
-  void _performSearch(String query) {
-    // This method will be called when user types in search
-    // Implement your search API call here
-    setState(() {
-      // Update filtered list
-    });
+    return _allFacilities.where((facility) {
+      final name = (facility['name'] ?? '').toString().toLowerCase();
+      final location = (facility['location'] ?? '').toString().toLowerCase();
+      return name.contains(query) || location.contains(query);
+    }).toList();
   }
 }
-
