@@ -502,33 +502,6 @@
       "dateTime": "2025-12-15T09:10:00.000",
       "status": "upcoming",
       "isUpcoming": true
-    },
-    {
-      "id": "d50b",
-      "clinic": "عيادة القلب",
-      "doctor": "د. أحمد محمد",
-      "location": "مستشفى الملك فهد",
-      "dateTime": "2025-12-15T10:10:00.000",
-      "status": "upcoming",
-      "isUpcoming": true
-    },
-    {
-      "id": "69aa",
-      "clinic": "عيادة القلب",
-      "doctor": "د. أحمد محمد",
-      "location": "مستشفى الملك فهد",
-      "dateTime": "2025-12-15T11:00:00.000",
-      "status": "upcoming",
-      "isUpcoming": true
-    },
-    {
-      "id": "1fc9",
-      "clinic": "عيادة طب الأسرة",
-      "doctor": "د. فاطمة سعيد",
-      "location": "مركز الرعاية الأولية - حي أحد",
-      "dateTime": "2025-12-27T12:00:00.000",
-      "status": "upcoming",
-      "isUpcoming": true
     }
   ],
   "health-records": [

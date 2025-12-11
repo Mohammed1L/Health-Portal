@@ -152,4 +152,28 @@ class AppointmentsService {
     // fallback: الآن
     return DateTime.now().toIso8601String();
   }
+  /// جلب أقرب موعد قادم (أقرب من الآن)
+  Future<Appointment?> fetchNearestUpcomingAppointment() async {
+    // نستخدم نفس الـ endpoint الخاص بالمواعيد القادمة
+    final allUpcoming = await fetchAppointments(upcoming: true);
+
+    final now = DateTime.now();
+
+    // نفلتر المواعيد اللي وقتها بعد الآن
+    final upcoming = allUpcoming
+        .where((appt) => appt.dateTime.isAfter(now))
+        .toList();
+
+    if (upcoming.isEmpty) {
+      return null;
+    }
+
+    // نرتبهم من الأقدم إلى الأحدث
+    upcoming.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+
+    // أول واحد هو أقرب موعد
+    return upcoming.first;
+  }
+
+
 }
